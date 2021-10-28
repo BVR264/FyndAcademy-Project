@@ -12,5 +12,9 @@ class Settings(BaseSettings):
     USE_CREDENTIALS: bool = True
     VALIDATE_CERTS: bool = True
 
+    TEMP_DIR: str = ".temp"
+    MAX_ATTEMPTS: int = 3
+    OTP_EXPIRY_SECONDS: int = 60
+
 
 settings = Settings()

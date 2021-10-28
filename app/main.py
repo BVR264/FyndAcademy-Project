@@ -1,13 +1,14 @@
+import os
 from fastapi import FastAPI
-from fastapi.params import Body
+from fastapi.params import Form
 from fastapi.exceptions import HTTPException
 from fastapi import status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from pydantic import EmailStr
 from fastapi_mail import ConnectionConfig, MessageSchema, FastMail
 from datetime import datetime, timedelta
 
-from .utils import get_otp
+from . import utils, pdf
 from .config import settings
 from .table import get_session, Student
 
@@ -24,57 +25,125 @@ conf = ConnectionConfig(
     VALIDATE_CERTS=settings.VALIDATE_CERTS,
 )
 
-app = FastAPI(title="Students Result Server")
 
-MAX_ATTEMPTS = 3
-OTP_EXPIRY_SECONDS = timedelta(seconds=60)
 students_dict = {}
 
-html = """
-<p>Welcome to Students Results Server, Your OTP is {otp}</p> 
-"""
 
 session = get_session()
 
+app = FastAPI(title="Students Result Server")
+
+
+@app.on_event("startup")
+def create_temp_dir():
+    os.makedirs(settings.TEMP_DIR, exist_ok=True)
+
+
+@app.get("/student/results")
+async def results():
+    content = """
+    <!DOCTYPE html>
+    <html>
+    <body>
+
+    <h2> Students Results Server</h2>
+
+    <form action="/student/generate-otp" method="post">
+    <label for="email">E-Mail:</label><br>
+    <input type="text" id="email" name="email" value="user@example.com"><br>
+    <input type="submit" value="Submit">
+    </form> 
+
+    </body>
+    </html>
+    """
+
+    return HTMLResponse(content=content, status_code=status.HTTP_200_OK)
+
+
+# -----------------------------OTP Generation -----------------------
+
+otp_html = """
+<p>Welcome to Students Results Server, Your OTP is {otp}</p> 
+"""
+
+
 @app.post("/student/generate-otp")
 async def student_email_auth(
-    email: EmailStr = Body(..., description="Enter the e-mail to send OTP")
+    email: EmailStr = Form(..., description="Enter the e-mail to send OTP")
 ):
 
-    student = session.query(Student).filter(Student.email==email).first()
+    student = session.query(Student).filter(Student.email == email).first()
 
     if student is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail='You are not a registered student'
+            detail="You are not a registered student",
         )
 
-    otp = get_otp()
+    otp = utils.generate_otp()
 
-    body = html.format(otp=otp)
+    body = otp_html.format(otp=otp)
 
     message = MessageSchema(
         subject="Students Result Server",
         recipients=[email],  # List of recipients, as many as you can pass
-        body=body,
+        body=otp_html.format(otp=otp),
         subtype="html",
     )
 
     fm = FastMail(conf)
     await fm.send_message(message)
 
-    timestamp = datetime.now()
-    students_dict[email] = {"otp": otp, "attempts": 0, "timestamp": timestamp}
+    columns = []
+    values = []
 
-    return JSONResponse(
-        content={"message": "OTP successfully sent"}, status_code=status.HTTP_200_OK
-    )
+    for c in student.__table__.columns:
+        columns.append(c.key)
+        values.append(getattr(student, c.key))
+
+    students_dict[email] = {
+        "otp": otp,
+        "attempts": 0,
+        "timestamp": datetime.now(),
+        "columns": columns,
+        "values": values,
+    }
+
+    content = f"""
+    <!DOCTYPE html>
+    <html>
+    <body>
+
+    <h2> Students Results Server</h2>
+
+    <form action="/student/validate-otp" method="post">
+    <label for="email">E-Mail:</label><br>
+    <input type="text" id="email" name="email" value="{email}"><br>
+    <label for="otp">OTP:</label><br>
+    <input type="text" id="otp" name="otp"><br>
+    <input type="submit" value="Submit">
+    </form> 
+
+    </body>
+    </html>
+    """
+
+    return HTMLResponse(content=content, status_code=status.HTTP_200_OK)
+
+
+
+# ------------------------- OTP Validation ----------------------------------------------
+
+results_html = """
+<h2>Hi, your result is here</h2>
+"""
 
 
 @app.post("/student/validate-otp")
-def student_otp_validate(
-    email: EmailStr = Body(..., description="Enter the e-mail to send OTP"),
-    otp: str = Body(
+async def student_otp_validate(
+    email: EmailStr = Form(..., description="Enter the e-mail to send OTP"),
+    otp: str = Form(
         ..., min_length=6, max_length=6, description="OTP received in e-mail`"
     ),
 ):
@@ -89,18 +158,19 @@ def student_otp_validate(
 
     stored_otp = student.get("otp")
     attempts = student.get("attempts")
+
     generated_timestamp = student.get("timestamp")
     current_timestamp = datetime.now()
 
-    print(current_timestamp - generated_timestamp)
-
-    if (current_timestamp - generated_timestamp) > OTP_EXPIRY_SECONDS:
+    if (current_timestamp - generated_timestamp) > timedelta(
+        seconds=settings.OTP_EXPIRY_SECONDS
+    ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"OTP expired, generate new OTP",
         )
 
-    if attempts == MAX_ATTEMPTS:
+    if attempts == settings.MAX_ATTEMPTS:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Invalid otp entered, Maximum number of attempts reached",
@@ -110,12 +180,31 @@ def student_otp_validate(
         student["attempts"] += 1
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid otp entered, number of attempts remaining are {MAX_ATTEMPTS - student['attempts']}",
+            detail=f"Invalid otp entered, number of attempts remaining are {settings.MAX_ATTEMPTS - student['attempts']}",
         )
     elif otp == stored_otp:
-        # send results
-        print("results sent succesfully")
-        del students_dict[email]
+
+        columns = student.get("columns")
+        values = student.get("values")
+
+        filename = utils.generate_random_filename(ext=".html")
+        html_filepath = os.path.join(settings.TEMP_DIR, filename)
+        pdf_filepath = pdf.generate_pdf(html_filepath, columns, values)
+
+        message = MessageSchema(
+            subject="Students Result Server",
+            recipients=[email],
+            attachments=[pdf_filepath],
+            body=results_html,
+            subtype="html",
+        )
+
+        fm = FastMail(conf)
+        await fm.send_message(message)
+
+        os.remove(html_filepath)
+        os.remove(pdf_filepath)
+
         return JSONResponse(
             content={"message": "results sent to email"}, status_code=status.HTTP_200_OK
         )
