@@ -81,6 +81,7 @@ mkvirtualenv fyndacademy-project
 ### Step 2
 
 ```bash
+sudo apt-get install wkhtmltopdf # to generate pdf
 pip install -r requirements.txt
 
 export DATABASE_USER=vijay
@@ -93,8 +94,8 @@ python -m app.db.build
 export MAIL_USERNAME=vijaybomma0106@gmail.com
 export MAIL_PASSWORD=Reddy@123 
 export MAIL_FROM=vijaybomma0106@gmail.com
-export MAX_ATTEMPTS = 3
-export OTP_EXPIRY_SECONDS = 60
+export MAX_ATTEMPTS=3
+export OTP_EXPIRY_SECONDS=60
 # run the server
 uvicorn "app.main:app" --host=0.0.0.0 --port=8000
 
