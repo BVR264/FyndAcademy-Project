@@ -4,4 +4,5 @@ fastapi-mail==1.0.1
 python-multipart==0.0.5
 mysql-connector-python==8.0.27
 SQLAlchemy==1.4.26
+pdfkit==0.6.1
 black

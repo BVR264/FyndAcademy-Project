@@ -5,33 +5,23 @@ from fastapi.exceptions import HTTPException
 from fastapi import status
 from fastapi.responses import JSONResponse, HTMLResponse
 from pydantic import EmailStr
-from fastapi_mail import ConnectionConfig, MessageSchema, FastMail
+from fastapi_mail import MessageSchema, FastMail
 from datetime import datetime, timedelta
+from sqlalchemy.engine import create_engine
 
-from . import utils, pdf
-from .config import settings
-from .table import get_session, Student
-
-
-conf = ConnectionConfig(
-    MAIL_USERNAME=settings.MAIL_USERNAME,
-    MAIL_PASSWORD=settings.MAIL_PASSWORD,
-    MAIL_FROM=settings.MAIL_FROM,
-    MAIL_PORT=settings.MAIL_PORT,
-    MAIL_SERVER=settings.MAIL_SERVER,
-    MAIL_TLS=settings.MAIL_TLS,
-    MAIL_SSL=settings.MAIL_SSL,
-    USE_CREDENTIALS=settings.USE_CREDENTIALS,
-    VALIDATE_CERTS=settings.VALIDATE_CERTS,
-)
+from app import utils, pdf
+from app.mail import conf
+from app.config import settings
+from app.db.config import db_uri, settings as db_settings
+from app.db.table import Student
+from app.db.session import get_session
 
 
-students_dict = {}
-
-
-session = get_session()
+engine = create_engine(f"{db_uri}/{db_settings.database_name}", echo=True)
+session = get_session(engine)
 
 app = FastAPI(title="Students Result Server")
+students_dict = {}
 
 
 @app.on_event("startup")
@@ -63,13 +53,8 @@ async def results():
 
 # -----------------------------OTP Generation -----------------------
 
-otp_html = """
-<p>Welcome to Students Results Server, Your OTP is {otp}</p> 
-"""
-
-
 @app.post("/student/generate-otp")
-async def student_email_auth(
+async def student_generate_otp(
     email: EmailStr = Form(..., description="Enter the e-mail to send OTP")
 ):
 
@@ -83,12 +68,14 @@ async def student_email_auth(
 
     otp = utils.generate_otp()
 
-    body = otp_html.format(otp=otp)
+    body = f"""
+    <p>Welcome to Students Results Server, Your OTP is {otp}</p> 
+    """
 
     message = MessageSchema(
         subject="Students Result Server",
         recipients=[email],  # List of recipients, as many as you can pass
-        body=otp_html.format(otp=otp),
+        body=body,
         subtype="html",
     )
 
@@ -141,7 +128,7 @@ results_html = """
 
 
 @app.post("/student/validate-otp")
-async def student_otp_validate(
+async def student_validate_otp(
     email: EmailStr = Form(..., description="Enter the e-mail to send OTP"),
     otp: str = Form(
         ..., min_length=6, max_length=6, description="OTP received in e-mail`"
