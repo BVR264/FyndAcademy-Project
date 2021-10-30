@@ -2,8 +2,7 @@
 
 __Description__:
 
-All the results data will exist in STUDENTS database where ADMIN has Authority to update STUDENTS data base,
-Once student requests for result, after successful authentication with their OTP via Email, the result summary will be sent over email from the database via the results-server.
+All the results data will exist in STUDENTS database, Once student requests for result, after successful authentication with their OTP via Email, the result summary will be sent over email in from of PDF from the database via the results-server.
 
 ```bash
 # https://www.digitalocean.com/community/tutorials/how-to-install-mysql-on-ubuntu-20-04
@@ -48,7 +47,7 @@ systemctl status mysql.service
 ```sh
 git clone https://github.com/vijayreddybomma/FyndAcademy-Project.git
 cd FyndAcademy-Project
-git checkout server-v0
+git checkout main
 
 sudo apt install python3-pip
 ```
