@@ -1,8 +1,34 @@
 # Results-Server
 
-__Description__:
+## 1. Description
 
 All the results data will exist in STUDENTS database, Once student requests for result, after successful authentication with their OTP via Email, the result summary will be sent over email in from of PDF from the database via the results-server.
+
+## 2. Working
+
+1. We expect the student results data in a `csv: data/students-results.csv` which we use to build `MySQL database`. Any further data needs to be added to csv for it to reflect in database.
+2. First the webpage is displayed to the user which needs a `valid email` address to be submitted.
+3. When the user `submits` the email, we check whether user's `email` exists in the database.
+4. If the user is not found, we return 403_FORBIDDEN
+5. If the user is found, generate an OTP, store the user's entry {email, OTP, #attempts} in a dictionary. Send the OTP to user's `email` and return `OTP submit form`.
+6. The OTP submission if received from the user, the OTP has three validations.
+   1. Incorrect OTP - Return 401_UNAUTHORIZED
+   2. Max Number of Attempts Reached (3) - Return 403_FORBIDDEN
+   3. Timeout (OTP expiry after a certain period - 60 seconds) - Return 403_FORBIDDEN
+7. If the user submitted OTP is valid, then send the results via email in the form of PDF. 
+   
+
+## 3. Installation
+
+__Below are the instructions to run the application of local (or) any cloud service__
+
+For deploying on AWS EC2 Instance, make sure to ssh into the instance, We follow this blog from [twilio](https://www.twilio.com/blog/deploy-flask-python-app-aws) for app deployment
+
+```sh
+ssh ubuntu@{ip-address-of-ec2-instance} -i {pem-file}
+```
+
+### 3.1 MySQL installation
 
 ```bash
 # https://www.digitalocean.com/community/tutorials/how-to-install-mysql-on-ubuntu-20-04
@@ -19,7 +45,7 @@ sudo mysql_secure_installation
 # Reload privilege tables now? : y
 sudo mysql
 ```
-
+### 3.2 MySQL: Create User
 
 ```sql
 CREATE USER 'vijay'@'localhost' IDENTIFIED BY 'HelloWorld123#';
@@ -42,7 +68,7 @@ EXIT;
 # check whether the service is active and running
 systemctl status mysql.service
 ```
-
+### 3.3 Clone the project
 
 ```sh
 git clone https://github.com/vijayreddybomma/FyndAcademy-Project.git
@@ -52,9 +78,7 @@ git checkout main
 sudo apt install python3-pip
 ```
 
-## Installation
-
-### Step 1
+### 3.4 Virtualenv Installation
 
 ```sh
 pip install virtualenvwrapper
@@ -63,7 +87,7 @@ pip install virtualenvwrapper
 export WORKON_HOME=~/Envs
 mkdir -p $WORKON_HOME
 
-nano ~/.bashrc
+nano ~/.bashrc # opens up editor
 # Add the below lines to bashrc
 # start ------------------
 export WORKON_HOME=~/Envs
@@ -77,19 +101,30 @@ source ~/.bashrc
 mkvirtualenv fyndacademy-project
 ```
 
-### Step 2
+### 3.5 Requirements Installation
 
-```bash
+```sh
 sudo apt-get install wkhtmltopdf # to generate pdf
 pip install -r requirements.txt
+```
 
+### 3.6 Build the database
+```sh
+# export the following environment variables
 export DATABASE_USER=vijay
 export DATABASE_PASSWORD=HelloWorld123#
 export DATABASE_SERVER=localhost
 export DATABASE_NAME=students_results_server
 # builds the database from csv
 python -m app.db.build
-
+```
+### 3.7 Start the server
+```sh
+# export the following environment variables
+export DATABASE_USER=vijay
+export DATABASE_PASSWORD=HelloWorld123#
+export DATABASE_SERVER=localhost
+export DATABASE_NAME=students_results_server
 export MAIL_USERNAME=vijaybomma0106@gmail.com
 export MAIL_PASSWORD=Reddy@123 
 export MAIL_FROM=vijaybomma0106@gmail.com
@@ -97,11 +132,35 @@ export MAX_ATTEMPTS=3
 export OTP_EXPIRY_SECONDS=60
 # run the server
 uvicorn "app.main:app" --host=0.0.0.0 --port=8000
-
 ```
 
-## Open in browser
+### 3.8 Add more students to database
+```sh
+# Method 1
+# add student details to data/students-results.csv on local, commit
+# take a pull on server and build database again
+nano data/students-results.csv
+git add data/students-results.csv
+git commit -m 'new student details added'
+git push origin {your-current-branch}
+git pull origin {your-current-branch} # On server
 
-`http://{Public IPv4 DNS}:{port}/{path}`
+# Method 2 (in server environment)
+# open up the data/students-results.csv in an editor
+nano data/students-results.csv
+# Ctrl+X to write/save and Ctrl+O to exit
+
+# Method 3 (in server environment)
+# echo new student details and append to csv
+echo "{email},{name},{english},{maths},{science}" >> data/students-results.csv
+```
+
+## 4. Open in browser
+
+`http://{Public-IPv4-DNS}:{PORT}/{path}`
+
+For `Public-IPv4-DNS`, Goto [AWS EC2 Management Console](https://us-east-2.console.aws.amazon.com/ec2/v2/home?region=us-east-2#Instances:sort=dnsName)
+
+For `PORT`, refer to the uvicorn server port above (make sure it's added as `CUSTOM TCP Rule`rule in security groups when creating EC2 instance)
 
 eg,. http://ec2-3-129-26-101.us-east-2.compute.amazonaws.com:8000/student/results

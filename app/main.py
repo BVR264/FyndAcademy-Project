@@ -153,14 +153,14 @@ async def student_validate_otp(
         seconds=settings.OTP_EXPIRY_SECONDS
     ):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"OTP expired, generate new OTP",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"OTP expired, Generate new OTP",
         )
 
     if attempts == settings.MAX_ATTEMPTS:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Invalid otp entered, Maximum number of attempts reached",
+            detail=f"Invalid otp entered, Maximum number of attempts reached, Generate new OTP",
         )
 
     elif otp != stored_otp:
