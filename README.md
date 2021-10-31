@@ -25,7 +25,7 @@ __Below are the instructions to run the application of local (or) any cloud serv
 For deploying on AWS EC2 Instance, make sure to ssh into the instance, We follow this blog from [twilio](https://www.twilio.com/blog/deploy-flask-python-app-aws) for app deployment
 
 ```sh
-ssh ubuntu@{ip-address-of-ec2-instance} -i {pem-file}
+ssh ubuntu@{public-IPv4-address-of-ec2-instance} -i {pem-file}
 ```
 
 ### 3.1 MySQL installation
@@ -118,8 +118,15 @@ export DATABASE_NAME=students_results_server
 # builds the database from csv
 python -m app.db.build
 ```
-### 3.7 Start the server
+
+### 3.7 Start the server in tmux session
+
 ```sh
+# tmux allows us to run programs in sessions and detach them so that they can continue running without interruption even if ssh connection is terminated
+sudo apt install tmux
+# tmux new -s {session_name}
+tmux new -s deployment
+
 # export the following environment variables
 export DATABASE_USER=vijay
 export DATABASE_PASSWORD=HelloWorld123#
@@ -132,6 +139,12 @@ export MAX_ATTEMPTS=3
 export OTP_EXPIRY_SECONDS=60
 # run the server
 uvicorn "app.main:app" --host=0.0.0.0 --port=8000
+
+# click ctrl+b d to detach
+
+tmux ls # displays list of sessions
+# tmux attach -t {session_name} 
+tmux attach -t deployment # re-attach the session
 ```
 
 ### 3.8 Add more students to database
