@@ -29,10 +29,9 @@ ssh ubuntu@{public-IPv4-address-of-ec2-instance} -i {pem-file}
 ```
 
 ### 3.1 MySQL installation
+__Installtion follows this blog [Install MySQL](https://www.digitalocean.com/community/tutorials/how-to-install-mysql-on-ubuntu-20-04)__
 
 ```bash
-# https://www.digitalocean.com/community/tutorials/how-to-install-mysql-on-ubuntu-20-04
-
 sudo apt install mysql-server
 sudo mysql_secure_installation
 # Would you like to setup VALIDATE PASSWORD component? : y
@@ -52,13 +51,12 @@ CREATE USER 'vijay'@'localhost' IDENTIFIED BY 'HelloWorld123#';
 
 # if you encounter <ERROR 1396 (HY000): Operation CREATE USER failed for 'vijay'@'localhost'>
 # https://stackoverflow.com/questions/5555328/error-1396-hy000-operation-create-user-failed-for-jacklocalhost
-
 DROP USER 'vijay'@'localhost';
 CREATE USER 'vijay'@'localhost' IDENTIFIED BY 'HelloWorld123#';
 
 GRANT CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, SELECT, REFERENCES, RELOAD on *.* TO 'vijay'@'localhost' WITH GRANT OPTION;
 
-# when we grant some privileges for a user, running the command flush privileges will reloads the grant tables in the mysql database enabling the changes to take effect without reloading or restarting mysql service.
+# when we grant some privileges for a user, running the command flush privileges will reload the grant tables in the mysql database enabling the changes to take effect without reloading or restarting mysql service.
 
 FLUSH PRIVILEGES;
 EXIT;
@@ -98,13 +96,19 @@ source ~/.local/bin/virtualenvwrapper.sh
 
 # finally
 source ~/.bashrc
+# create a new virtual env't
 mkvirtualenv fyndacademy-project
+# switch/activate a virtual env't
+workon fyndacademy-project
+# deactivate
+deactivate
 ```
 
 ### 3.5 Requirements Installation
 
 ```sh
-sudo apt-get install wkhtmltopdf # to generate pdf
+# pdfkit dependency: to generate pdf
+sudo apt-get install wkhtmltopdf 
 pip install -r requirements.txt
 ```
 
