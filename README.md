@@ -60,7 +60,7 @@ GRANT CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, SELECT, REFERENCES, RELOAD on
 # when we grant some privileges for a user, running the command flush privileges will reload the grant tables in the mysql database enabling the changes to take effect without reloading or restarting mysql service.
 
 FLUSH PRIVILEGES;
-EXIT;
+EXIT
 ```
 
 ```sh

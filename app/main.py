@@ -69,7 +69,9 @@ async def student_generate_otp(
     otp = utils.generate_otp()
 
     body = f"""
-    <p>Welcome to Students Results Server, Your OTP is {otp}</p> 
+    Welcome to Students Results Server,
+    
+    Your OTP is {otp} 
     """
 
     message = MessageSchema(
@@ -123,7 +125,7 @@ async def student_generate_otp(
 # ------------------------- OTP Validation ----------------------------------------------
 
 results_html = """
-<h2>Hi, your result is here</h2>
+Hi, Your result is here
 """
 
 
