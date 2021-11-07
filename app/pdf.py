@@ -79,7 +79,10 @@ def generate_html_table(columns, values):
 
 
 def generate_pdf(filepath, columns, values):
-    ""
+    """
+    Generates a HTML Table and converts stores it to a file,
+    generates a pdf from that HTML file and returns the pdf_filepath
+    """
 
     html_table = generate_html_table(columns, values)
 

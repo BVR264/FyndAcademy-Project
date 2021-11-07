@@ -8,10 +8,12 @@ from app.db.config import settings, db_uri
 
 
 def build_db():
+    # create_engine creates a database connection wrapper
     engine = create_engine(db_uri)
     engine.execute(f"CREATE DATABASE IF NOT EXISTS {settings.database_name}")
     engine.execute(f"USE {settings.database_name}")
 
+    # creates the table in database
     Base.metadata.create_all(engine)
 
     # read students data from csv and insert data to sb

@@ -53,11 +53,12 @@ async def results():
 
 # -----------------------------OTP Generation -----------------------
 
+
 @app.post("/student/generate-otp")
 async def student_generate_otp(
     email: EmailStr = Form(..., description="Enter the e-mail to send OTP")
 ):
-
+    # check whether the student exists in the database
     student = session.query(Student).filter(Student.email == email).first()
 
     if student is None:
@@ -66,6 +67,7 @@ async def student_generate_otp(
             detail="You are not a registered student",
         )
 
+    # generate otp if student exists
     otp = utils.generate_otp()
 
     body = f"""
@@ -81,15 +83,18 @@ async def student_generate_otp(
         subtype="html",
     )
 
+    # send the otp to email
     fm = FastMail(conf)
     await fm.send_message(message)
 
-    columns = []
-    values = []
+    # store the student details in a dictionary
+    columns = []  # used to store column names
+    values = []  # used to store column values
 
-    for c in student.__table__.columns:
-        columns.append(c.key)
-        values.append(getattr(student, c.key))
+    # retrieves the values from columns of a particular student
+    for column in student.__table__.columns:
+        columns.append(column.key)
+        values.append(getattr(student, column.key))
 
     students_dict[email] = {
         "otp": otp,
@@ -119,7 +124,6 @@ async def student_generate_otp(
     """
 
     return HTMLResponse(content=content, status_code=status.HTTP_200_OK)
-
 
 
 # ------------------------- OTP Validation ----------------------------------------------
@@ -176,6 +180,7 @@ async def student_validate_otp(
         columns = student.get("columns")
         values = student.get("values")
 
+        # generate html & pdf files
         filename = utils.generate_random_filename(ext=".html")
         html_filepath = os.path.join(settings.TEMP_DIR, filename)
         pdf_filepath = pdf.generate_pdf(html_filepath, columns, values)
@@ -193,6 +198,8 @@ async def student_validate_otp(
 
         os.remove(html_filepath)
         os.remove(pdf_filepath)
+
+        del students_dict[email]
 
         return JSONResponse(
             content={"message": "results sent to email"}, status_code=status.HTTP_200_OK
