@@ -26,6 +26,7 @@ For deploying on AWS EC2 Instance, make sure to ssh into the instance, We follow
 
 ```sh
 ssh ubuntu@{public-IPv4-address-of-ec2-instance} -i {pem-file}
+
 ```
 
 ### 3.1 MySQL installation
@@ -130,6 +131,8 @@ python -m app.db.build
 sudo apt install tmux
 # tmux new -s {session_name}
 tmux new -s deployment
+# switch to working environment
+workon fyndacademy-project
 
 # export the following environment variables
 export DATABASE_USER=vijay
@@ -149,6 +152,9 @@ uvicorn "app.main:app" --host=0.0.0.0 --port=8000
 tmux ls # displays list of sessions
 # tmux attach -t {session_name} 
 tmux attach -t deployment # re-attach the session
+
+tmux kill-session -t deployment # kills the session
+
 ```
 
 ### 3.8 Add more students to database
