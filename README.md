@@ -9,12 +9,12 @@ All the results data will exist in STUDENTS database, Once student requests for 
 1. We expect the student results data in a `csv: data/students-results.csv` which we use to build `MySQL database`. Any further data needs to be added to csv for it to reflect in database.
 2. First the webpage is displayed to the user which needs a `valid email` address to be submitted.
 3. When the user `submits` the email, we check whether user's `email` exists in the database.
-4. If the user is not found, we return 403_FORBIDDEN
+4. If the user is not found, we return `401_UNAUTHORIZED`
 5. If the user is found, generate an OTP, store the user's entry {email, OTP, #attempts} in a dictionary. Send the OTP to user's `email` and return `OTP submit form`.
 6. The OTP submission if received from the user, the OTP has three validations.
-   1. Incorrect OTP - Return 401_UNAUTHORIZED
-   2. Max Number of Attempts Reached (3) - Return 403_FORBIDDEN
-   3. Timeout (OTP expiry after a certain period - 60 seconds) - Return 403_FORBIDDEN
+   1. Incorrect OTP - Return `401_UNAUTHORIZED`
+   2. Max Number of Attempts Reached (3) - Return `403_FORBIDDEN`
+   3. Timeout (OTP expiry after a certain period - 60 seconds) - Return `403_FORBIDDEN`
 7. If the user submitted OTP is valid, then send the results via email in the form of PDF. 
    
 
