@@ -1,27 +1,35 @@
 import os
-from fastapi import FastAPI
-from fastapi.params import Form
-from fastapi.exceptions import HTTPException
-from fastapi import status
-from fastapi.responses import JSONResponse, HTMLResponse
-from pydantic import EmailStr
-from fastapi_mail import MessageSchema, FastMail
 from datetime import datetime, timedelta
+from enum import Enum
+from typing import Optional, Union
+
+from fastapi import FastAPI, status
+from fastapi.background import BackgroundTasks
+from fastapi.exceptions import HTTPException
+from fastapi.params import Form, Path
+from fastapi.requests import Request
+from fastapi.responses import HTMLResponse, JSONResponse, Response
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi_mail import FastMail, MessageSchema, MessageType
+from pydantic import EmailStr
 from sqlalchemy.engine import create_engine
 
-from app import utils, pdf
-from app.mail import conf
+from app import pdf, utils
 from app.config import settings
-from app.db.config import db_uri, settings as db_settings
-from app.db.table import Student
+from app.db.config import db_uri
+from app.db.config import settings as db_settings
 from app.db.session import get_session
-
+from app.db.tables import Student
+from app.mail import conf
 
 engine = create_engine(f"{db_uri}/{db_settings.database_name}", echo=True)
 session = get_session(engine)
 
-app = FastAPI(title="Students Result Server")
-students_dict = {}
+app = FastAPI(title="Result Server")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+templates = Jinja2Templates(directory="templates")
 
 
 @app.on_event("startup")
@@ -29,178 +37,278 @@ def create_temp_dir():
     os.makedirs(settings.TEMP_DIR, exist_ok=True)
 
 
-@app.get("/student/results")
-async def results():
-    content = """
-    <!DOCTYPE html>
-    <html>
-    <body>
-
-    <h2> Students Results Server</h2>
-
-    <form action="/student/generate-otp" method="post">
-    <label for="email">E-Mail:</label><br>
-    <input type="text" id="email" name="email" value="user@example.com"><br>
-    <input type="submit" value="Submit">
-    </form> 
-
-    </body>
-    </html>
-    """
-
-    return HTMLResponse(content=content, status_code=status.HTTP_200_OK)
+# ------------------------------------------------------------------
 
 
-# -----------------------------OTP Generation -----------------------
+@app.get("/")
+@app.get("/home")
+async def home(request: Request):
+    return templates.TemplateResponse(
+        name="home.html",
+        context={"request": request},
+        status_code=status.HTTP_200_OK,
+    )
 
 
-@app.post("/student/generate-otp")
-async def student_generate_otp(
-    email: EmailStr = Form(..., description="Enter the e-mail to send OTP")
+@app.get("/about")
+async def about(request: Request):
+    return templates.TemplateResponse(
+        name="about.html",
+        context={"request": request},
+        status_code=status.HTTP_200_OK,
+    )
+
+
+class Users(str, Enum):
+    STUDENT = "student"
+
+
+@app.get("/user/{user}")
+async def email_form(request: Request, user: Users):
+    return templates.TemplateResponse(
+        name="email-form.html",
+        context={"request": request, "user": user.value},
+        status_code=status.HTTP_200_OK,
+    )
+
+
+# ----------------------------- OTP Generation -----------------------
+current_users = {}
+
+
+@app.post("/user/{user}/generate-otp")
+async def _generate_otp(
+    background_tasks: BackgroundTasks,
+    request: Request,
+    user: Users,
+    email: str = Form(..., description="Enter the e-mail to send OTP"),  # type: ignore
 ):
-    # check whether the student exists in the database
-    student = session.query(Student).filter(Student.email == email).first()
 
-    if student is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="You are not a registered student",
+    if user == Users.STUDENT:
+        user_info = session.query(Student).filter(Student.email == email).first()
+    # else:
+    #     user_info = session.query(Admin).filter(Admin.email == email).first()
+
+    if user_info is None:
+        return templates.TemplateResponse(
+            name="invalid-email.html",
+            context={"request": request, "email": email},
+            status_code=status.HTTP_404_NOT_FOUND,
         )
 
     # generate otp if student exists
     otp = utils.generate_otp()
+    # retrieves the values from columns of a particular user
+    info = {
+        column.key: getattr(user_info, column.key)
+        for column in user_info.__table__.columns
+    }
 
+    current_users[email] = {
+        "otp": otp,
+        "attempts": 0,
+        "info": info,
+        "timestamp": None,
+    }
+    # ----------------------------
     body = f"""
-    Welcome to Students Results Server,
+    Hi, 
     
     Your OTP is {otp} 
     """
 
     message = MessageSchema(
-        subject="Students Result Server",
-        recipients=[email],  # List of recipients, as many as you can pass
+        subject="Result Server",
+        recipients=[email],  # type: ignore
         body=body,
-        subtype="html",
+        subtype=MessageType.plain,
     )
 
+    async def send_otp_and_add_timestamp():
+        await FastMail(conf).send_message(message)
+        current_users[email].update(timestamp=datetime.now())
+
     # send the otp to email
-    fm = FastMail(conf)
-    await fm.send_message(message)
+    background_tasks.add_task(send_otp_and_add_timestamp)
 
-    # store the student details in a dictionary
-    columns = []  # used to store column names
-    values = []  # used to store column values
-
-    # retrieves the values from columns of a particular student
-    for column in student.__table__.columns:
-        columns.append(column.key)
-        values.append(getattr(student, column.key))
-
-    students_dict[email] = {
-        "otp": otp,
-        "attempts": 0,
-        "timestamp": datetime.now(),
-        "columns": columns,
-        "values": values,
-    }
-
-    content = f"""
-    <!DOCTYPE html>
-    <html>
-    <body>
-
-    <h2> Students Results Server</h2>
-
-    <form action="/student/validate-otp" method="post">
-    <label for="email">E-Mail:</label><br>
-    <input type="text" id="email" name="email" value="{email}"><br>
-    <label for="otp">OTP:</label><br>
-    <input type="text" id="otp" name="otp"><br>
-    <input type="submit" value="Submit">
-    </form> 
-
-    </body>
-    </html>
-    """
-
-    return HTMLResponse(content=content, status_code=status.HTTP_200_OK)
+    return templates.TemplateResponse(
+        name="otp-form.html",
+        context={"request": request, "email": email, "user": user.value},
+        status_code=status.HTTP_200_OK,
+        background=background_tasks,
+    )
 
 
 # ------------------------- OTP Validation ----------------------------------------------
 
-results_html = """
-Hi, Your result is here
-"""
 
-
-@app.post("/student/validate-otp")
+@app.post("/user/{user}/validate-otp")
 async def student_validate_otp(
-    email: EmailStr = Form(..., description="Enter the e-mail to send OTP"),
+    background_tasks: BackgroundTasks,
+    request: Request,
+    user: Users,
+    email: str = Form(..., description="Enter the e-mail to send OTP"),  # type: ignore
     otp: str = Form(
         ..., min_length=6, max_length=6, description="OTP received in e-mail`"
-    ),
+    ),  # type: ignore
 ):
 
-    student = students_dict.get(email, None)
-
-    if student is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized email, generate otp first",
+    current_user = current_users.get(email, None)
+    if current_user is None:
+        return templates.TemplateResponse(
+            name="otp-expired-max-attempts-reached.html",
+            context={
+                "request": request,
+                "email": email,
+                "generate_otp_first": True,
+                "user": user.value,
+            },
+            status_code=status.HTTP_403_FORBIDDEN,
         )
 
-    stored_otp = student.get("otp")
-    attempts = student.get("attempts")
-
-    generated_timestamp = student.get("timestamp")
+    # increment attempts
+    current_user["attempts"] += 1
     current_timestamp = datetime.now()
 
-    if (current_timestamp - generated_timestamp) > timedelta(
+    # case 1: OTP expired
+    if (current_timestamp - current_user["timestamp"]) > timedelta(
         seconds=settings.OTP_EXPIRY_SECONDS
     ):
-        raise HTTPException(
+        return templates.TemplateResponse(
+            name="otp-expired-max-attempts-reached.html",
+            context={
+                "request": request,
+                "email": email,
+                "otp_expired": True,
+                "user": user.value,
+            },
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"OTP expired, Generate new OTP",
         )
 
-    if attempts == settings.MAX_ATTEMPTS:
-        raise HTTPException(
+    # case 2: OTP max attempts reached
+    if current_user["attempts"] == settings.MAX_ATTEMPTS:
+
+        return templates.TemplateResponse(
+            name="otp-expired-max-attempts-reached.html",
+            context={
+                "request": request,
+                "email": email,
+                "max_attempts_reached": True,
+                "user": user.value,
+            },
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Invalid otp entered, Maximum number of attempts reached, Generate new OTP",
         )
 
-    elif otp != stored_otp:
-        student["attempts"] += 1
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid otp entered, number of attempts remaining are {settings.MAX_ATTEMPTS - student['attempts']}",
-        )
-    elif otp == stored_otp:
+    # case 3: incorrect OTP
+    if otp != current_user["otp"]:
 
-        columns = student.get("columns")
-        values = student.get("values")
-
-        # generate html & pdf files
-        filename = utils.generate_random_filename(ext=".html")
-        html_filepath = os.path.join(settings.TEMP_DIR, filename)
-        pdf_filepath = pdf.generate_pdf(html_filepath, columns, values)
-
-        message = MessageSchema(
-            subject="Students Result Server",
-            recipients=[email],
-            attachments=[pdf_filepath],
-            body=results_html,
-            subtype="html",
+        return templates.TemplateResponse(
+            name="incorrect-otp-form.html",
+            context={
+                "request": request,
+                "email": email,
+                "remaining_attempts": settings.MAX_ATTEMPTS - current_user["attempts"],
+                "user": user.value,
+            },
+            status_code=status.HTTP_403_FORBIDDEN,
         )
 
-        fm = FastMail(conf)
-        await fm.send_message(message)
+    # case 4: correct OTP
+    elif otp == current_user["otp"]:
+        if user == Users.STUDENT:
 
-        os.remove(html_filepath)
-        os.remove(pdf_filepath)
+            info = current_user["info"]
+            columns = list(info.keys())
+            values = list(info.values())
 
-        del students_dict[email]
+            # generate html & pdf files
+            html_filename = f"{info['name'].title()}-result.html"
+            html_filepath = os.path.join(settings.TEMP_DIR, html_filename)
+            pdf_filepath = pdf.generate_pdf(html_filepath, columns, values)
 
-        return JSONResponse(
-            content={"message": "results sent to email"}, status_code=status.HTTP_200_OK
+            results_html = f"""
+            Hi {info['name'].title()}, Your result is here.
+            """
+
+            message = MessageSchema(
+                subject="Result Server",
+                recipients=[email],  # type: ignore
+                attachments=[pdf_filepath],
+                body=results_html,
+                subtype=MessageType.plain,
+            )
+
+            async def send_result_and_cleanup():
+                await FastMail(conf).send_message(message)
+                os.remove(html_filepath)
+                os.remove(pdf_filepath)
+                del current_users[email]
+
+            background_tasks.add_task(send_result_and_cleanup)
+
+        return templates.TemplateResponse(
+            name="result-sent.html",
+            context={"request": request, "email": email},
+            status_code=status.HTTP_200_OK,
+            background=background_tasks,
         )
+
+
+from pydantic import BaseModel, EmailStr, Field
+
+
+class StudentValidator(BaseModel):
+    email: EmailStr
+    name: str
+    english: int = Field(..., gt=0, le=100)
+    maths: int = Field(..., gt=0, le=100)
+    science: int = Field(..., gt=0, le=100)
+
+
+@app.post("/user/student/create")
+def _add_student(student: StudentValidator):
+    session.add(Student(**student.dict()))
+    session.commit()
+    return Response(content="created", status_code=status.HTTP_201_CREATED)
+
+
+@app.post("/user/student/read")
+def _read_student(email: EmailStr):
+
+    student_row = session.query(Student).filter(Student.email == email).first()
+    # import pdb; pdb.set_trace()
+
+    if student_row is None:
+        return Response(content="not found", status_code=status.HTTP_404_NOT_FOUND)
+    else:
+        info = {
+            column.key: getattr(student_row, column.key)
+            for column in student_row.__table__.columns
+        }
+        return JSONResponse(content=info, status_code=status.HTTP_200_OK)
+
+
+@app.post("/user/student/delete")
+def _delete_student(email: EmailStr):
+    student_row = session.query(Student).filter(Student.email == email)
+
+    if student_row.first() is None:
+        return Response(content="not found", status_code=status.HTTP_404_NOT_FOUND)
+    else:
+        student_row.delete()
+        session.commit()
+        return Response(content="deleted", status_code=status.HTTP_201_CREATED)
+
+
+@app.post("/user/student/update")
+def _update_student(student: StudentValidator):
+
+    student_row = session.query(Student).filter(Student.email == student.email)
+
+    if student_row.first() is None:
+        return Response(content="not found", status_code=status.HTTP_404_NOT_FOUND)
+
+    else:
+        student_row.update(student.dict())
+        session.commit()
+        return Response(content="updated", status_code=status.HTTP_201_CREATED)

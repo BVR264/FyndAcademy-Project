@@ -1,0 +1,8 @@
+fastapi[all]
+fastapi-mail
+mysql-connector-python
+SQLAlchemy
+pdfkit
+# formatting
+black
+isort

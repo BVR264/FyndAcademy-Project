@@ -1,4 +1,4 @@
-from sqlalchemy import Table, String, Column, Integer
+from sqlalchemy import Column, Integer, String, Table
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -12,3 +12,10 @@ class Student(Base):
     english = Column("english", Integer)
     maths = Column("maths", Integer)
     science = Column("science", Integer)
+
+
+# class Admin(Base):
+#     __tablename__ = "admin"
+
+#     email = Column("email", String(320), primary_key=True)
+#     name = Column("name", String(320))

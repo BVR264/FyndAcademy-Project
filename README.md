@@ -1,12 +1,12 @@
-# Results-Server
+# Result-Server
 
 ## 1. Description
 
-All the results data will exist in STUDENTS database, Once student requests for result, after successful authentication with their OTP via Email, the result summary will be sent over email in from of PDF from the database via the results-server.
+All the results data will exist in STUDENTS database, Once student requests for result, after successful authentication with their OTP via Email, the result summary will be sent over email in from of PDF from the database via the result-server.
 
 ## 2. Working
 
-1. We expect the student results data in a `csv: data/students-results.csv` which we use to build `MySQL database`. Any further data needs to be added to csv for it to reflect in database.
+1. We expect the student results data in a `csv: data/student.csv` which we use to build `MySQL database`. Any further data needs to be added to csv for it to reflect in database.
 2. First the webpage is displayed to the user which needs a `valid email` address to be submitted.
 3. When the user `submits` the email, we check whether user's `email` exists in the database.
 4. If the user is not found, we return `401_UNAUTHORIZED`
@@ -97,10 +97,10 @@ source ~/.local/bin/virtualenvwrapper.sh
 
 # finally
 source ~/.bashrc
-# create a new virtual env't
-mkvirtualenv fyndacademy-project
-# switch/activate a virtual env't
-workon fyndacademy-project
+# create a new virtual env
+mkvirtualenv result-server
+# switch/activate a virtual env
+workon result-server
 # deactivate
 deactivate
 ```
@@ -110,18 +110,27 @@ deactivate
 ```sh
 # pdfkit dependency: to generate pdf
 sudo apt-get install wkhtmltopdf 
-pip install -r requirements.txt
+
+pip install pip-tools
+cd requirements
+
+# when building project for the first time
+# update packages in all.in
+pip-compile --output-file all.txt all.in
+pip-sync all.txt
+cd ..
+
 ```
 
 ### 3.6 Build the database
 ```sh
-# export the following environment variables
+# update the following environment variables to build-db.sh
 export DATABASE_USER=vijay
 export DATABASE_PASSWORD=HelloWorld123#
 export DATABASE_SERVER=localhost
-export DATABASE_NAME=students_results_server
+export DATABASE_NAME=result_server
 # builds the database from csv
-python -m app.db.build
+sh build-db.sh
 ```
 
 ### 3.7 Start the server in tmux session
@@ -132,20 +141,20 @@ sudo apt install tmux
 # tmux new -s {session_name}
 tmux new -s deployment
 # switch to working environment
-workon fyndacademy-project
+workon result-server
 
-# export the following environment variables
+# update the following environment variables in run.sh
 export DATABASE_USER=vijay
 export DATABASE_PASSWORD=HelloWorld123#
 export DATABASE_SERVER=localhost
-export DATABASE_NAME=students_results_server
+export DATABASE_NAME=result_server
 export MAIL_USERNAME=vijaybomma0106@gmail.com
-export MAIL_PASSWORD=Reddy@123 
+export MAIL_PASSWORD=yqgfajbztvwqmnyv 
 export MAIL_FROM=vijaybomma0106@gmail.com
 export MAX_ATTEMPTS=3
 export OTP_EXPIRY_SECONDS=60
 # run the server
-uvicorn "app.main:app" --host=0.0.0.0 --port=8000
+sh run.sh
 
 # click ctrl+b d to detach
 
@@ -162,20 +171,20 @@ tmux kill-session -t deployment # kills the session
 # Method 1
 # add student details to data/students-results.csv on local, commit
 # take a pull on server and build database again
-nano data/students-results.csv
-git add data/students-results.csv
+nano data/student.csv
+git add data/student.csv
 git commit -m 'new student details added'
 git push origin {your-current-branch}
 git pull origin {your-current-branch} # On server
 
 # Method 2 (in server environment)
 # open up the data/students-results.csv in an editor
-nano data/students-results.csv
+nano data/student.csv
 # Ctrl+X to write/save and Ctrl+O to exit
 
 # Method 3 (in server environment)
 # echo new student details and append to csv
-echo "{email},{name},{english},{maths},{science}" >> data/students-results.csv
+echo "{email},{name},{english},{maths},{science}" >> data/student.csv
 ```
 
 ## 4. Open in browser

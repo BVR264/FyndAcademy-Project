@@ -1,0 +1,47 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', path='/home.css') }}">
+</head>
+<header>
+    <nav class="navbar">
+        <ul>
+            <li><a class="active" href="#">Home</a></li>
+            <li><a href="{{ url_for('about') }}">About</a></li>
+        </ul>
+    </nav>
+</header>
+
+<body class="body">
+    <div class="L3eUgb">
+        <!-- div for image -->
+        <div class="o3j99 LLD4me yr19Zb LS8OJ">
+            <div class="k1zIA rSk4se">
+                <img class="lnXdpd" alt="Logo" height="300" width="900"
+                    src="https://cdn.pixelbin.io/v2/yellow-king-a96494/original/static/welcome_logo.png">
+            </div>
+        </div>
+
+        <div class="o3j99 ikrT4e om7nvf">
+            <form action="/user/student" method="GET">
+                <div class="FPdoLc lJ9FBc">
+                    <center>
+                        <input class="gNO89b nCP5yc" value="I'm a Student" role="button" type="submit">
+                    </center>
+                </div>
+            </form>
+            {# <form action="/user/admin" method="GET">
+                <div class="FPdoLc lJ9FBc">
+                    <center>
+                        <input class="gNO89b nCP5yc" value="I'm a Admin" aria-label="I'm a Admin" role="button"
+                            type="submit">
+                    </center>
+                </div>
+            </form> #}
+        </div>
+    </div>
+    </div>
+
+</body>
+
+</html>

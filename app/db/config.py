@@ -8,6 +8,6 @@ class Settings(BaseSettings):
     database_name: str
 
 
-settings = Settings()
+settings = Settings()  # type: ignore
 
 db_uri = f"mysql+mysqlconnector://{settings.database_user}:{settings.database_password}@{settings.database_server}"

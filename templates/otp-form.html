@@ -1,0 +1,83 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+</head>
+<header>
+    <nav class="navbar">
+        <ul>
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('about') }}">About</a></li>
+        </ul>
+    </nav>
+</header>
+
+<body class="body">
+    <div class="L3eUgb">
+        <!-- div for image -->
+        <div class="o3j99 LLD4me yr19Zb LS8OJ">
+            <div class="k1zIA rSk4se">
+                <img class="lnXdpd" alt="Logo" height="170" width="500"
+                    src="https://cdn.pixelbin.io/v2/yellow-king-a96494/original/static/result-server-logo.png">
+            </div>
+        </div>
+        <!-- div for input form -->
+        <div class="o3j99 ikrT4e om7nvf">
+            <form action="/user/{{ user }}/validate-otp" method="POST">
+                {# input email #}
+                <div class="RNNXgb">
+                    <div class="SDkEP">
+                        <div class="iblpc">
+                            <div class="CcAdNb">
+                                <img id='some-id'
+                                    src='https://cdn.pixelbin.io/v2/yellow-king-a96494/original/static/icons8-mail-64.svg'>
+                            </div>
+                        </div>
+                        <div class="a4bIc">
+                            <div class="YacQv"></div>
+                            <input class="gLFyf" maxlength="2048" name="email" type="email" aria-autocomplete="both"
+                                aria-haspopup="false" autocapitalize="off" autocomplete="on" autocorrect="off"
+                                autofocus="" role="combobox" spellcheck="false" title="Email" value="{{ email }}"
+                                placeholder="Email" aria-label="Email" readonly>
+                        </div>
+
+
+                    </div>
+                </div>
+                {# input otp -----------------------------------------------------------------------------------------
+                #}
+                <div class="RNNXgb">
+                    <div class="SDkEP">
+                        <div class="iblpc">
+                            <div class="CcAdNb">
+                                <img id='some-id'
+                                    src='https://cdn.pixelbin.io/v2/yellow-king-a96494/original/static/otp-logo.svg'>
+                            </div>
+                        </div>
+                        <div class="a4bIc">
+                            <div class="YacQv"></div>
+                            <input class="gLFyf" minlength="6" maxlength="6" name="otp" type="text" autofocus=""
+                                role="combobox" title="OTP" value="" placeholder="OTP" aria-label="OTP" required>
+                        </div>
+
+
+                    </div>
+                </div>
+
+                <div class="FPdoLc lJ9FBc">
+                    <center>
+                        <input class="gNO89b" value="Validate OTP" aria-label="Validate OTP" name="btnK" role="button"
+                            tabindex="0" type="submit">
+                    </center>
+
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+    </div>
+
+</body>
+
+</html>

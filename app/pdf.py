@@ -1,5 +1,6 @@
-import pdfkit
 import os
+
+import pdfkit
 
 
 def generate_html_table(columns, values):
@@ -13,7 +14,7 @@ def generate_html_table(columns, values):
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="Keywords" content="html, css, html tables, table">
-        <meta name="Description" content="Fynd Academy 2021">
+        <meta name="Description" content="Fynd Academy 2023">
         <!-- add icon -->
         <link rel="icon" href="/favicon.ico" type="image/x-icon">
         <link href='http://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
@@ -47,7 +48,7 @@ def generate_html_table(columns, values):
     </head>
     <body>
         <div class="container">
-            <h2>Fynd Academy 2021</h2>
+            <h2>Fynd Academy 2023</h2>
             <table>
                 <thead>
                 <tr>

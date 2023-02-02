@@ -1,0 +1,43 @@
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+</head>
+<header>
+    <nav class="navbar">
+        <ul>
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a class="active">About</a></li>
+        </ul>
+    </nav>
+</header>
+<section id="module-anchor-statement-mission-statement" data-section-id="mission-statement"
+    class="module-anchor-statement module-anchor-statement__header-one">
+    <div>
+        <h1 class="padder">I Developed this <span class="blue">Result-Server</span> project using <span
+                class="red">Python</span> and the <span class="green">FastAPI framework.</span> The database used is
+            <span class="yellow">SQL</span>
+            and the frontend was developed using <span class="blue">HTML</span> and <span class="red">CSS</span>. The
+            design of the frontend was inspired by <span class="blue">G</span><span class="red">o</span><span
+                class="green">o</span><span class="yellow">g</span><span class="blue">l</span><span
+                class="red">e</span>'s
+            webpage.
+            <p>
+            <p><span class="pink">Project Description :</span>
+            </p>
+
+            All student results are stored in the <span class="red">Students</span> database. When a student requests
+            their results,
+            they must first <span class="green">Authenticate</span> using a One-Time-Password sent to their <span
+                class="yellow">Email.</span> Once authenticated, a
+            summary of
+            the student's results will be sent to their email in the form of a <span class="blue">PDF</span> from the
+            Result-Server. <span class="RED">Admin</span>
+            have authority
+            to <span class="green">Access</span> and <span class="yellow">Manage</span> the student data in the
+            database, but Admin must also <span class="blue">Authenticate</span> using a
+            <span class="red">One-Time-Password</span> sent to their email before making any <span
+                class="green">Updates</span>, <span class="yellow">Creations</span> or <span
+                class="blue">Deletions</span>.
+            </p>
+        </h1>
+    </div>
+</section>

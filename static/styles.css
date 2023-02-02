@@ -1,0 +1,279 @@
+.body {
+  background-color: white;
+  font-size: 14px;
+  font-family: arial, sans-serif;
+  color: #202124;
+}
+
+.L3eUgb {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.LS8OJ {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.yr19Zb {
+  min-height: 92px;
+}
+
+.LLD4me {
+  min-height: 150px;
+  max-height: 290px;
+  height: calc(100% - 560px);
+}
+
+.rSk4se {
+  max-height: 92px;
+  position: relative;
+}
+
+.k1zIA {
+  height: 100%;
+  margin-top: auto;
+}
+
+.lnXdpd {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  /* object-position: center bottom; */
+  /* width: auto; */
+}
+
+.om7nvf {
+  padding: 20px;
+}
+
+form {
+  display: block;
+  margin-top: 0em;
+}
+
+div {
+  display: block;
+}
+
+.RNNXgb {
+  display: flex;
+  z-index: 3;
+  height: 44px;
+  background: #fff;
+  border: 1px solid #625f6c;
+  box-shadow: none;
+  border-radius: 24px;
+  margin: 0 auto;
+  width: 638px;
+  width: auto;
+  max-width: 584px;
+  margin-bottom: 15px;
+}
+
+.SDkEP {
+  flex: 1;
+  display: flex;
+  padding: 5px 8px 0 14px;
+}
+
+.iblpc {
+  display: flex;
+  align-items: center;
+  padding-right: 13px;
+  margin-top: -5px;
+}
+
+.CcAdNb {
+  margin: auto;
+}
+
+.QCzoEc {
+  margin-top: 3px;
+  color: #9aa0a6;
+}
+
+.z1asCe {
+  display: inline-block;
+  fill: currentColor;
+  height: 24px;
+  line-height: 24px;
+  position: relative;
+  width: 24px;
+}
+
+.a4bIc {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.YacQv {
+  color: transparent;
+  white-space: pre;
+}
+
+.gLFyf {
+  background-color: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+  color: rgba(0, 0, 0, 0.87);
+  word-wrap: break-word;
+  outline: none;
+  display: flex;
+  -webkit-tap-highlight-color: transparent;
+  margin-top: -37px;
+}
+
+.gLFyf,
+.YacQv {
+  height: 34px;
+  font-size: 16px;
+  flex: 100%;
+}
+
+.ikrT4e {
+  max-height: 160px;
+}
+
+.lJ9FBc {
+  height: 70px;
+}
+
+.FPdoLc {
+  padding-top: 18px;
+}
+
+center {
+  display: block;
+  text-align: -webkit-center;
+}
+
+.lJ9FBc input[type="submit"],
+.gbqfba {
+  background-color: var(--gm-fillbutton-container-color, #1a73e8);
+  border: 1px solid #f8f9fa;
+  border-radius: 30px;
+  color: #fff;
+  margin: 11px 4px;
+  padding: 0 16px;
+  height: 36px;
+  min-width: 54px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  letter-spacing: 0.0107142857em;
+  font: bold 15px Arial, Sans-serif;
+}
+
+.o3j99 {
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.OyEIQ {
+  display: inline-flex;
+  font-size: 12px;
+  color: #d93025;
+  align-items: center;
+  margin-right: 8px;
+}
+.EjBTad {
+  margin-right: 8px;
+}
+
+.LxE1Id {
+  height: 16px;
+  width: 16px;
+}
+
+.SdBahf .OyEIQ {
+  margin-top: 4px;
+}
+
+.module-anchor-statement {
+  -ms-flex-align: center;
+  align-items: center;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding-bottom: 30px;
+  padding-top: 30px;
+}
+
+.center {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.module-anchor-statement__header-one {
+  min-height: 200px;
+}
+
+.module-anchor-statement__header-one h1 {
+  font-family: "Google Sans Display", Arial, Helvetica, sans-serif;
+  font-size: 2.3125rem;
+  font-weight: 400;
+  letter-spacing: -0.03125rem;
+  line-height: 3rem;
+  color: #000;
+  font-size: 2vw;
+  line-height: 1.3em;
+  margin: 0 auto;
+  width: 82%;
+}
+.module-anchor-statement .blue {
+  color: #4285f4;
+}
+
+.module-anchor-statement .pink {
+  color: #f50287;
+}
+.module-anchor-statement .red {
+  color: #ea4335;
+}
+.module-anchor-statement .green {
+  color: #34a853;
+}
+.module-anchor-statement .yellow {
+  color: #f9ab00;
+}
+
+.navbar {
+  background-color: cornflowerblue;
+  border-radius: 30px;
+}
+.navbar li {
+  float: left;
+  list-style: none;
+  margin: 13px 20px;
+}
+
+.navbar ul {
+  overflow: auto;
+}
+
+.navbar li a {
+  padding: 3px 3px;
+  text-decoration: none;
+  color: white;
+  font: bold 18px Arial, Sans-serif;
+}
+
+.navbar li a.active {
+  color: rgb(0, 0, 0);
+}
+
+.navbar li a:hover:not(.active) {
+  color: black;
+}
+
+.padder {
+  width: 958.953;
+  padding-top: 118px;
+}
