@@ -109,7 +109,9 @@ deactivate
 
 ```sh
 # pdfkit dependency: to generate pdf
-sudo apt-get install wkhtmltopdf 
+sudo apt-get install wkhtmltopdf
+
+workon result-server
 
 pip install pip-tools
 cd requirements
@@ -195,4 +197,4 @@ For `Public-IPv4-DNS`, Goto [AWS EC2 Management Console](https://us-east-2.conso
 
 For `PORT`, refer to the uvicorn server port above (make sure it's added as `CUSTOM TCP Rule`rule in security groups when creating EC2 instance)
 
-eg,. http://ec2-3-129-26-101.us-east-2.compute.amazonaws.com:8000/student/results
+eg,. http://ec2-34-207-221-255.compute-1.amazonaws.com:8000/

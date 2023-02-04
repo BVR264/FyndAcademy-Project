@@ -92,8 +92,9 @@ async def _generate_otp(
     if user_info is None:
         return templates.TemplateResponse(
             name="invalid-email.html",
-            context={"request": request, "email": email},
-            status_code=status.HTTP_404_NOT_FOUND,
+            context={"request": request, "email": email, "user" : user.value},
+            status_code=status.HTTP_404_NOT_FOUND
+            ,
         )
 
     # generate otp if student exists
