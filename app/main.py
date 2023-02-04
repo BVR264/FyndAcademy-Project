@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional, Union
 
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, Depends
 from fastapi.background import BackgroundTasks
 from fastapi.exceptions import HTTPException
 from fastapi.params import Form, Path
@@ -39,6 +39,8 @@ def create_temp_dir():
 
 # ------------------------------------------------------------------
 
+
+    
 
 @app.get("/")
 @app.get("/home")
@@ -265,12 +267,18 @@ class StudentValidator(BaseModel):
     maths: int = Field(..., gt=0, le=100)
     science: int = Field(..., gt=0, le=100)
 
+def check_pin(pin: str):
+    if pin != "secretpin":
+        raise HTTPException(status_code=400, detail="Incorrect PIN")
+    return True
+
 
 @app.post("/user/student/create")
-def _add_student(student: StudentValidator):
+def add_student(student: StudentValidator, pin: str = Depends(check_pin)):
     session.add(Student(**student.dict()))
     session.commit()
     return Response(content="created", status_code=status.HTTP_201_CREATED)
+    
 
 
 @app.post("/user/student/read")
@@ -290,9 +298,10 @@ def _read_student(email: EmailStr):
 
 
 @app.post("/user/student/delete")
-def _delete_student(email: EmailStr):
-    student_row = session.query(Student).filter(Student.email == email)
+def _delete_student(email: EmailStr, pin: str = Depends(check_pin)):
 
+    student_row = session.query(Student).filter(Student.email == email)
+    
     if student_row.first() is None:
         return Response(content="not found", status_code=status.HTTP_404_NOT_FOUND)
     else:
@@ -302,7 +311,7 @@ def _delete_student(email: EmailStr):
 
 
 @app.post("/user/student/update")
-def _update_student(student: StudentValidator):
+def _update_student(student: StudentValidator,pin: str = Depends(check_pin)):
 
     student_row = session.query(Student).filter(Student.email == student.email)
 
