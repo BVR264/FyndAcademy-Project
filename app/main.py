@@ -268,9 +268,11 @@ class StudentValidator(BaseModel):
     science: int = Field(..., gt=0, le=100)
 
 def check_pin(pin: str):
-    if pin != "secretpin":
+    secret_pin = os.getenv("SECRET_PIN")  # Retrieve the PIN value from an environment variable
+    if pin != secret_pin:
         raise HTTPException(status_code=400, detail="Incorrect PIN")
     return True
+
 
 
 @app.post("/user/student/create")
