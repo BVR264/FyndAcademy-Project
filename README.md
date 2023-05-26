@@ -34,6 +34,9 @@ __Installtion follows this blog [Install MySQL](https://www.digitalocean.com/com
 
 ```bash
 sudo apt install mysql-server
+sudo mysql
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'HelloWorld123#';
+ctrl+D
 sudo mysql_secure_installation
 # Would you like to setup VALIDATE PASSWORD component? : y
 # Please enter 0 = LOW, 1 = MEDIUM and 2 = STRONG: 2
@@ -43,7 +46,7 @@ sudo mysql_secure_installation
 # Disallow root login remotely? : y
 # Remove test database and access to it? : y
 # Reload privilege tables now? : y
-sudo mysql
+sudo mysql -p 
 ```
 ### 3.2 MySQL: Create User
 
