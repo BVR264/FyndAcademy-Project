@@ -205,4 +205,4 @@ For `Public-IPv4-DNS`, Goto [AWS EC2 Management Console](https://us-east-2.conso
 
 For `PORT`, refer to the uvicorn server port above (make sure it's added as `CUSTOM TCP Rule`rule in security groups when creating EC2 instance)
 
-eg,. http://ec2-34-207-221-255.compute-1.amazonaws.com:8000/
+eg,. http://ec2-44-203-174-191.compute-1.amazonaws.com:8000/
