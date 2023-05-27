@@ -97,6 +97,11 @@ export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
 export VIRTUALENVWRAPPER_VIRTUALENV=~/.local/bin/virtualenv
 source ~/.local/bin/virtualenvwrapper.sh
 # ------------------- end
+After making the changes, press "Ctrl + O" to save the file.
+Press "Enter" to confirm the filename.
+Finally, press "Ctrl + X" to exit the nano editor.
+
+
 
 # finally
 source ~/.bashrc
